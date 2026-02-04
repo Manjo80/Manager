@@ -1,13 +1,26 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.urls import include, path
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-
-    # Auth (login/logout) – include ONCE to avoid duplicate namespace warnings
-    path("", include(("accounts.urls", "accounts"), namespace="accounts")),
-
+    # Dashboard + Inventory
     path("", include("inventory.urls")),
-    path("", include("recce.urls")),
+
+    # Auth
+    path("", include("accounts.urls")),
+
+    # Settings
     path("settings/", include("settingsapp.urls")),
+
+    # RECCE
+    path("recce/", include(("recce.urls", "recce"), namespace="recce")),
+
+    # Django Admin (intern)
+    path("djadmin/", admin.site.urls),
 ]
+
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
