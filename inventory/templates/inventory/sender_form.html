@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Sender{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">{% if object %}Sender bearbeiten{% else %}Sender anlegen{% endif %}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'inventory:sender_list' %}">Zurück</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Speichern</button>
+        <a class="btn btn-outline-secondary" href="{% url 'inventory:sender_list' %}">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load auth_extras %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">Dashboard</h1>
+  <div class="d-flex gap-2">
+    {% if request.user|has_group:"inventory_admin" %}
+      <a class="btn btn-primary btn-sm" href="{% url 'inventory:sender_list' %}">Inventar</a>
+    {% endif %}
+    <a class="btn btn-outline-secondary btn-sm" href="/settings/">Einstellungen</a>
+  </div>
+</div>
+
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-2"><div class="card"><div class="card-body p-2"><div class="text-muted small">Total</div><div class="fs-5">{{ kpi.total }}</div></div></div></div>
+  <div class="col-6 col-md-2"><div class="card"><div class="card-body p-2"><div class="text-muted small">Verfügbar</div><div class="fs-5">{{ kpi.available }}</div></div></div></div>
+  <div class="col-6 col-md-2"><div class="card"><div class="card-body p-2"><div class="text-muted small">Im Einsatz</div><div class="fs-5">{{ kpi.in_use }}</div></div></div></div>
+  <div class="col-6 col-md-2"><div class="card"><div class="card-body p-2"><div class="text-muted small">Defekt</div><div class="fs-5">{{ kpi.defect }}</div></div></div></div>
+  <div class="col-6 col-md-2"><div class="card"><div class="card-body p-2"><div class="text-muted small">Verloren</div><div class="fs-5">{{ kpi.lost }}</div></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header">Verfügbar nach Gruppe</div>
+      <ul class="list-group list-group-flush">
+        {% for row in available_by_group %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ row.group__name|default:"(keine Gruppe)" }}</span>
+            <span class="badge text-bg-secondary">{{ row.count }}</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">Keine Daten</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% if available_without_group %}
+      <div class="alert alert-warning mt-3">
+        <strong>Hinweis:</strong> Es gibt Sender, die <em>verfügbar</em> sind, aber keine Gruppe haben.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header">Sender-Modelle</div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Verfügbar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sm in sender_models_stats %}
+              <tr>
+                <td>{{ sm.brand }} {{ sm.name }}</td>
+                <td class="text-end">{{ sm.total }}</td>
+                <td class="text-end">{{ sm.available }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-muted">Keine Sender erfasst.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

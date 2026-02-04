@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Status ändern{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <div class="text-muted small">Sender</div>
+    <div class="h5 m-0">{{ object.name }}</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="/">Zurück</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
+        {{ form.status }}
+        {% if form.status.errors %}
+          <div class="text-danger small mt-1">{{ form.status.errors|striptags }}</div>
+        {% endif %}
+        <div class="form-text">
+          Wenn du auf <b>Verfügbar</b> stellst, musst du auch eine <b>Gruppe</b> auswählen.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="{{ form.group.id_for_label }}">Gruppe (nur bei Verfügbar)</label>
+        {{ form.group }}
+        {% if form.group.errors %}
+          <div class="text-danger small mt-1">{{ form.group.errors|striptags }}</div>
+        {% endif %}
+      </div>
+
+      <button class="btn btn-primary" type="submit">Speichern</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

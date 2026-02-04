@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load auth_extras %}
+{% block title %}Sender Inventar{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">Sender Inventar</h1>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'inventory:dashboard' %}">Dashboard</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'inventory:sender_new' %}">Neu</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="list-group list-group-flush">
+    {% for s in object_list %}
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between gap-3">
+          <div>
+            <div class="fw-semibold">{{ s.name }}</div>
+            <div class="text-muted small">
+              {{ s.model }} • {{ s.get_status_display }}
+              {% if s.group %} • {{ s.group.name }}{% endif %}
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 justify-content-end align-items-start">
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'inventory:sender_status' s.pk %}">Status</a>
+            {% if request.user|has_group:"inventory_admin" %}
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'inventory:sender_edit' s.pk %}">Bearbeiten</a>
+              <a class="btn btn-outline-danger btn-sm" href="{% url 'inventory:sender_delete' s.pk %}">Löschen</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="list-group-item">Keine Sender vorhanden.</div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-3">
+  <ul class="pagination pagination-sm">
+    {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Zurück</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Zurück</span></li>
+    {% endif %}
+
+    <li class="page-item disabled"><span class="page-link">Seite {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+    {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Weiter</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Weiter</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

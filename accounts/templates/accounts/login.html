@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-sm-10 col-md-6 col-lg-4">
+    <h1 class="h4 mb-3">Login</h1>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        {% if form.errors %}
+          <div class="alert alert-danger">Login fehlgeschlagen.</div>
+        {% endif %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="id_username">Benutzer</label>
+            <input class="form-control" type="text" name="username" autofocus required id="id_username" value="{{ form.username.value|default_if_none:'' }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="id_password">Passwort</label>
+            <input class="form-control" type="password" name="password" required id="id_password">
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Anmelden</button>
+        </form>
+      </div>
+    </div>
+    <p class="text-muted small mt-3 mb-0">
+      LDAP später: Auth-Backend in settings wechseln, UI bleibt gleich.
+    </p>
+  </div>
+</div>
+{% endblock %}
