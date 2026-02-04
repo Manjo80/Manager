@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Einbaumöglichkeit{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">{% if object %}Einbaumöglichkeit bearbeiten{% else %}Einbaumöglichkeit neu{% endif %}</h1>
+  {% if object %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:install_detail' object.pk %}">Zurück</a>
+  {% else %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:vehicle_detail' vehicle.pk %}">Zurück</a>
+  {% endif %}
+</div>
+
+<form method="post" class="card card-body" novalidate>
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Name</label>{{ form.title }}
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Beschreibung</label>{{ form.description }}
+    <div class="form-text">Du kannst hier frei schreiben (auch als Schritte, z.B. mit Aufzählungen). Optional, kein Zwang.</div>
+  </div>
+  <div class="row g-2">
+    <div class="col-12 col-md-6">
+      <label class="form-label">Tools</label>{{ form.tools }}
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Risiko</label>{{ form.risk_level }}
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Zeit (min)</label>{{ form.effort_minutes }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Wer</label>{{ form.installed_by }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Wann (Datum)</label>{{ form.installed_on }}
+    </div>
+  </div>
+
+  <hr class="my-3">
+  <div class="fw-semibold mb-2">Sender &amp; Akku (Modelle anhaken)</div>
+  <div class="form-check mb-2">
+    <input class="form-check-input" type="checkbox" id="fixed_power_all" name="fixed_power_all" value="1">
+    <label class="form-check-label" for="fixed_power_all">Feststrom</label>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th style="width:48px"></th>
+          <th>Sender-Modell</th>
+          <th style="min-width:180px">Strom</th>
+          <th style="min-width:220px">Max. Akku-Konfiguration</th>
+        </tr>
+      </thead>
+      <tbody>
+    {% for row in setup_rows %}
+      {% with sm=row.sender_model ms=row.setup %}
+          <tr>
+            <td>
+              <input class="form-check-input js-sm-check" type="checkbox" name="sm_{{ sm.id }}" id="sm_{{ sm.id }}"
+                {% if ms %}checked{% endif %}>
+            </td>
+            <td>
+              <label class="form-check-label" for="sm_{{ sm.id }}">{{ sm.name }}</label>
+            </td>
+            <td>
+              <select class="form-select form-select-sm js-sm-field" name="pm_{{ sm.id }}" data-sm="{{ sm.id }}">
+                {% for key,label in power_modes %}
+                  <option value="{{ key }}" {% if ms and ms.power_mode == key %}selected{% elif not ms and key == 'battery' %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+
+            </td>
+            <td>
+              <select class="form-select form-select-sm js-sm-field js-bc" name="bc_{{ sm.id }}" data-sm="{{ sm.id }}" data-allowed-bt="{{ row.allowed_battery_type_ids|join:',' }}">
+                <option value="">---</option>
+                {% for bc in battery_configs %}
+                  <option value="{{ bc.id }}" data-bt="{{ bc.battery_type_id }}"
+                    {% if ms and ms.max_battery_config_id == bc.id %}selected
+                    {% elif not ms and default_battery_config_id == bc.id %}selected
+                    {% endif %}>
+                    {{ bc.name }} ({{ bc.capacity_mah }} mAh)
+                  </option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+      {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    (function () {
+      const cb = document.getElementById('fixed_power_all');
+      if (!cb) return;
+      const toggle = () => {
+        const disabled = cb.checked;
+        document.querySelectorAll('select[name^="bc_"]').forEach(s => { s.disabled = disabled; });
+        document.querySelectorAll('select[name^="pm_"]').forEach(s => { if (disabled) s.value = 'fixed'; });
+      };
+      cb.addEventListener('change', toggle);
+      toggle();
+    })();
+  </script>
+
+  <script>
+    (function(){
+      function syncRow(smId){
+        const cb = document.getElementById('sm_' + smId);
+        document.querySelectorAll('.js-sm-field[data-sm="' + smId + '"]').forEach(el => {
+          el.disabled = !cb.checked;
+        });
+
+        // Filter battery-config options based on SenderModel settings (supported battery types)
+        const bc = document.querySelector('select[name="bc_' + smId + '"]');
+        if (bc) {
+          const allowed = (bc.dataset.allowedBt || '').split(',').map(x => x.trim()).filter(Boolean);
+          const hasAllowed = allowed.length > 0;
+
+          Array.from(bc.options).forEach(opt => {
+            if (!opt.value) return; // keep placeholder
+            const bt = opt.dataset.bt;
+            opt.hidden = hasAllowed && !allowed.includes(String(bt));
+          });
+
+          // If current selection is no longer allowed, clear it
+          if (bc.value) {
+            const sel = bc.options[bc.selectedIndex];
+            if (sel && sel.hidden) bc.value = '';
+          }
+
+          // Auto-pick the largest allowed option when enabling the row
+          if (cb.checked && !bc.value && !document.getElementById('fixed_power_all').checked) {
+            const firstAllowed = Array.from(bc.options).find(o => o.value && !o.hidden);
+            if (firstAllowed) bc.value = firstAllowed.value;
+          }
+        }
+      }
+      document.querySelectorAll('.js-sm-check').forEach(cb => {
+        const smId = cb.id.replace('sm_', '');
+        syncRow(smId);
+        cb.addEventListener('change', () => syncRow(smId));
+      });
+
+      // Re-filter battery options if battery-type settings changed by other UI actions
+      document.querySelectorAll('select.js-bc').forEach(sel => {
+        const smId = sel.name.replace('bc_', '');
+        sel.addEventListener('focus', () => syncRow(smId));
+      });
+    })();
+  </script>
+
+  <div class="d-flex gap-2 mt-3">
+    <button class="btn btn-primary" type="submit">Speichern</button>
+    {% if object %}
+      <a class="btn btn-outline-danger" href="{% url 'recce:install_delete' object.pk %}">Löschen</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

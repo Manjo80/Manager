@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}BatteryConfig{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">BatteryConfig neu</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:vehicle_filter' %}">Zurück</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card card-body" novalidate>
+  {% csrf_token %}
+  <div class="row g-2">
+    <div class="col-12 col-md-6"><label class="form-label">Name</label>{{ form.name }}</div>
+    <div class="col-12 col-md-6"><label class="form-label">BatteryType</label>{{ form.battery_type }}</div>
+    <div class="col-6 col-md-3"><label class="form-label">Cells</label>{{ form.cells_count }}</div>
+    <div class="col-6 col-md-3"><label class="form-label">Arrangement</label>{{ form.arrangement }}</div>
+    <div class="col-6 col-md-3"><label class="form-label">mAh</label>{{ form.capacity_mah }}</div>
+    <div class="col-6 col-md-3"><label class="form-label">V</label>{{ form.voltage_v }}</div>
+    <div class="col-12"><label class="form-label">Foto</label>{{ form.photo }}</div>
+  </div>
+  <button class="btn btn-primary mt-3" type="submit">Speichern</button>
+</form>
+{% endblock %}

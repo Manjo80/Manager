@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Max-Kombo{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">Max-Kombo hinzufügen</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:install_detail' install.pk %}">Zurück</a>
+</div>
+
+<form method="post" class="card card-body" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="row g-2">
+    <div class="col-12 col-md-4">
+      <label class="form-label">Sender Model</label>{{ form.sender_model }}
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Power Mode</label>{{ form.power_mode }}
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Max BatteryConfig</label>{{ form.max_battery_config }}
+      <div class="form-text">
+        Falls die passende Config fehlt: <a href="{% url 'recce:batteryconfig_new' %}">BatteryConfig anlegen</a>
+      </div>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Notizen</label>{{ form.notes }}
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-3" type="submit">Speichern</button>
+</form>
+{% endblock %}

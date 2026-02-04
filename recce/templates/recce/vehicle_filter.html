@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}RECCE{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">RECCE</h1>
+  <a class="btn btn-primary btn-sm" href="{% url 'recce:vehicle_new' %}">Neues Fahrzeug</a>
+</div>
+
+<form id="vehicle-filter-form" class="card card-body mb-3" method="get">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label class="form-label">Marke</label>
+      <select name="brand" class="form-select">
+        <option value="">--</option>
+        {% for b in brands %}
+          <option value="{{ b }}" {% if b == selected_brand %}selected{% endif %}>{{ b }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Modell</label>
+      <select name="model" class="form-select">
+        <option value="">--</option>
+        {% for m in models_for_brand %}
+          <option value="{{ m }}" {% if m == selected_model %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-2">
+      <label class="form-label">Jahr</label>
+      <input name="year" class="form-control" value="{{ selected_year }}" placeholder="z.B. 2019">
+    </div>
+    <div class="col-12 col-md-2 d-grid">
+      <button class="btn btn-outline-secondary" type="submit">Filtern</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  (function () {
+    const form = document.getElementById('vehicle-filter-form');
+    if (!form) return;
+
+    const brand = form.querySelector('select[name="brand"]');
+    const model = form.querySelector('select[name="model"]');
+    const year  = form.querySelector('input[name="year"]');
+
+    const submit = () => form.requestSubmit ? form.requestSubmit() : form.submit();
+
+    if (brand) brand.addEventListener('change', submit);
+    if (model) model.addEventListener('change', submit);
+
+    // Jahr: beim Verlassen oder Enter direkt filtern, optional mit kurzem Debounce.
+    if (year) {
+      year.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submit();
+        }
+      });
+      year.addEventListener('change', submit);
+      year.addEventListener('blur', submit);
+    }
+  })();
+</script>
+
+<div class="list-group">
+  {% for v in vehicles %}
+    <a class="list-group-item list-group-item-action" href="{% url 'recce:vehicle_detail' v.pk %}">
+      <div class="d-flex justify-content-between">
+        <div>
+          <div class="fw-semibold">{{ v.brand }} {{ v.model }}{% if v.variant %} – {{ v.variant }}{% endif %}</div>
+          <div class="text-muted small">
+            {% if v.year_from or v.year_to %}{{ v.year_from|default:"" }}–{{ v.year_to|default:"" }}{% endif %}
+            • Fotos: {{ v.photos.count }} • Einbau: {{ v.install_options.count }}
+          </div>
+        </div>
+        <span class="text-muted small">›</span>
+      </div>
+    </a>
+  {% empty %}
+    <div class="text-muted">Keine Fahrzeuge gefunden.</div>
+  {% endfor %}
+</div>
+{% endblock %}

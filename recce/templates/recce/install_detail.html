@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+{% with fv=install.fixed_views.first %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <div class="text-muted small">Einbaumöglichkeit</div>
+    <h1 class="h4 m-0">{{ install.title }}</h1>
+    <div class="text-muted small">
+      {% if install.vehicle and install.vehicle.pk %}
+        <a href="{% url 'recce:vehicle_detail' install.vehicle.pk %}">{{ install.vehicle }}</a>
+      {% else %}
+        <span class="text-muted">Kein Fahrzeug verknüpft</span>
+      {% endif %}
+      {% if install.created_by %} • von {{ install.created_by.username }}{% endif %}
+      {% if install.created_at %} • {{ install.created_at|date:"Y-m-d H:i" }}{% endif %}
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    {% if install.vehicle and install.vehicle.pk %}
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:vehicle_detail' install.vehicle.pk %}">Zurück</a>
+    {% else %}
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:vehicle_filter' %}">Zurück</a>
+    {% endif %}
+
+    {% if install.pk %}
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'recce:install_edit' install.pk %}">Bearbeiten</a>
+    {% endif %}
+
+    {% if fv and fv.pk %}
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:fixed_markers' fv.pk %}">Markieren</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if install.description %}
+  <div class="card card-body mb-3">{{ install.description|linebreaksbr }}</div>
+{% endif %}
+
+{% include "recce/install_detail_photos_snippet.html" %}
+
+{% endwith %}
+
+{% endblock %}

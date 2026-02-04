@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Fahrzeug{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 m-0">{% if object %}Fahrzeug bearbeiten{% else %}Fahrzeug neu{% endif %}</h1>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:vehicle_filter' %}">Zurück</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card card-body" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="row g-2">
+    <div class="col-12 col-md-4">
+      <label class="form-label">Marke</label>{{ form.brand }}
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Modell</label>{{ form.model }}
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">Variante</label>{{ form.variant }}
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label class="form-label">Jahr von</label>{{ form.year_from }}
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label">Jahr bis</label>{{ form.year_to }}
+    </div>
+    <div class="col-12">
+      <label class="form-label">Beschreibung</label>{{ form.description }}
+    </div>
+  </div>
+
+  <hr class="my-3">
+  <div class="alert alert-info mb-0">
+    Fotos werden <strong>nach</strong> dem Speichern hinzugefügt (wie zuvor).
+    Öffne danach die Fahrzeug-Details und nutze <em>"Foto hinzufügen"</em>.
+  </div>
+
+
+  <div class="d-flex gap-2 mt-3">
+    <button class="btn btn-primary" type="submit">Speichern</button>
+    {% if object %}
+      <a class="btn btn-outline-danger" href="{% url 'recce:vehicle_delete' object.pk %}">Löschen</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

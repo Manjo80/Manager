@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Fix-Ansicht markieren{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <div class="text-muted small">Fix-Ansicht</div>
+    <h1 class="h4 m-0">{{ fixed_view.get_view_type_display }}</h1>
+    <div class="text-muted small">
+      {% if fixed_view.install_option %}
+        <a href="{% url 'recce:install_detail' fixed_view.install_option.pk %}">{{ fixed_view.install_option.title }}</a>
+      {% else %}
+        <span class="text-danger">Keine InstallOption verknüpft</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if fixed_view.install_option %}
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:install_detail' fixed_view.install_option.pk %}">Zurück</a>
+    {% else %}
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:install_list' %}">Zurück</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small mb-2">
+          Klick = Kreuz. Drag = Rechteck / Kreis / Pfeil.
+        </div>
+
+        <div id="stage" style="position:relative; width:100%; max-width:900px;">
+          <img id="img"
+               src="{% static 'recce/fixed_placeholders/' %}{{ fixed_view.view_type }}.png"
+               alt=""
+               style="width:100%; height:auto; display:block; border-radius:8px;">
+
+          {% for m in fixed_view.markers.all %}
+            {% if m.marker_type == "cross" %}
+              <div style="position:absolute; left:{% widthratio m.x 1 100 %}%; top:{% widthratio m.y 1 100 %}%;
+                          transform:translate(-50%,-50%); pointer-events:none; font-weight:900; color:#d00; font-size:20px;">
+                ✖
+              </div>
+            {% elif m.marker_type == "rect" %}
+              <div style="position:absolute; left:{% widthratio m.x 1 100 %}%; top:{% widthratio m.y 1 100 %}%;
+                          width:{% widthratio m.w 1 100 %}%; height:{% widthratio m.h 1 100 %}%;
+                          border:2px solid #d00; background:rgba(255,0,0,.05); pointer-events:none;"></div>
+            {% elif m.marker_type == "circle" %}
+              <div style="position:absolute; left:{% widthratio m.x 1 100 %}%; top:{% widthratio m.y 1 100 %}%;
+                          width:{% widthratio m.r 1 200 %}%; height:{% widthratio m.r 1 200 %}%;
+                          transform:translate(-50%,-50%); border:2px solid #d00; border-radius:999px;
+                          background:rgba(255,0,0,.05); pointer-events:none;"></div>
+            {% elif m.marker_type == "arrow" %}
+              <svg viewBox="0 0 100 100" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;">
+                <defs>
+                  <marker id="arrowhead-{{ m.id }}" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <path d="M0,0 L6,3 L0,6 Z" fill="#d00"></path>
+                  </marker>
+                </defs>
+                <line x1="{% widthratio m.x 1 100 %}" y1="{% widthratio m.y 1 100 %}"
+                      x2="{% widthratio m.x2 1 100 %}" y2="{% widthratio m.y2 1 100 %}"
+                      stroke="#d00" stroke-width="4" marker-end="url(#arrowhead-{{ m.id }})"></line>
+              </svg>
+            {% endif %}
+          {% endfor %}
+
+          <!-- live preview -->
+          <div id="ghostCross" style="display:none; position:absolute; transform:translate(-50%,-50%); pointer-events:none; font-weight:900; color:#d00; font-size:20px;">✖</div>
+          <div id="ghostRect" style="display:none; position:absolute; border:2px dashed #d00; background:rgba(255,0,0,.06); pointer-events:none;"></div>
+          <div id="ghostCircle" style="display:none; position:absolute; border:2px dashed #d00; border-radius:999px;
+                                       background:rgba(255,0,0,.06); transform:translate(-50%,-50%); pointer-events:none;"></div>
+          <svg id="ghostArrow" viewBox="0 0 100 100" style="display:none; position:absolute; inset:0; width:100%; height:100%; pointer-events:none;">
+            <defs>
+              <marker id="ghostArrowHead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#d00"></path>
+              </marker>
+            </defs>
+            <line id="ghostArrowLine" x1="0" y1="0" x2="0" y2="0" stroke="#d00" stroke-width="4" marker-end="url(#ghostArrowHead)"></line>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-2">
+            <label class="form-label">Typ</label>
+            {{ form.marker_type }}
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label">x</label>{{ form.x }}</div>
+            <div class="col-6"><label class="form-label">y</label>{{ form.y }}</div>
+
+            <div class="col-6 rect-only"><label class="form-label">w</label>{{ form.w }}</div>
+            <div class="col-6 rect-only"><label class="form-label">h</label>{{ form.h }}</div>
+
+            <div class="col-6 circle-only"><label class="form-label">r</label>{{ form.r }}</div>
+
+            <div class="col-6 arrow-only"><label class="form-label">x2</label>{{ form.x2 }}</div>
+            <div class="col-6 arrow-only"><label class="form-label">y2</label>{{ form.y2 }}</div>
+          </div>
+
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Speichern</button>
+          </div>
+        </form>
+
+        <hr>
+        <div class="text-muted small mb-2">Marker</div>
+        <div class="list-group">
+          {% for m in fixed_view.markers.all %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div class="small">
+                <strong>{{ m.get_marker_type_display }}</strong>
+                <span class="text-muted">({{ m.x|floatformat:3 }}, {{ m.y|floatformat:3 }})</span>
+              </div>
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'recce:fixed_marker_delete' m.pk %}">Löschen</a>
+            </div>
+          {% empty %}
+            <div class="text-muted small">Keine Marker.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const img = document.getElementById('img');
+  const mt = document.getElementById('id_marker_type');
+
+  const xEl = document.getElementById('id_x');
+  const yEl = document.getElementById('id_y');
+  const wEl = document.getElementById('id_w');
+  const hEl = document.getElementById('id_h');
+  const rEl = document.getElementById('id_r');
+  const x2El = document.getElementById('id_x2');
+  const y2El = document.getElementById('id_y2');
+
+  const ghostCross = document.getElementById('ghostCross');
+  const ghostRect = document.getElementById('ghostRect');
+  const ghostCircle = document.getElementById('ghostCircle');
+  const ghostArrow = document.getElementById('ghostArrow');
+  const ghostArrowLine = document.getElementById('ghostArrowLine');
+
+  function relPos(ev){
+    const rect = img.getBoundingClientRect();
+    const x = (ev.clientX - rect.left) / rect.width;
+    const y = (ev.clientY - rect.top) / rect.height;
+    return { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) };
+  }
+
+  function showFields(){
+    const t = mt.value;
+    document.querySelectorAll('.rect-only').forEach(el => el.style.display = (t==='rect') ? '' : 'none');
+    document.querySelectorAll('.circle-only').forEach(el => el.style.display = (t==='circle') ? '' : 'none');
+    document.querySelectorAll('.arrow-only').forEach(el => el.style.display = (t==='arrow') ? '' : 'none');
+  }
+  mt.addEventListener('change', showFields);
+  showFields();
+
+  let down = null;
+
+  stage.addEventListener('pointerdown', (ev) => {
+    if(ev.button !== 0) return;
+    stage.setPointerCapture(ev.pointerId);
+    down = relPos(ev);
+
+    const t = mt.value;
+
+    if(t === 'cross'){
+      xEl.value = down.x.toFixed(6);
+      yEl.value = down.y.toFixed(6);
+      ghostCross.style.display = 'block';
+      ghostCross.style.left = (down.x*100)+'%';
+      ghostCross.style.top = (down.y*100)+'%';
+      ghostRect.style.display = 'none';
+      ghostCircle.style.display = 'none';
+      ghostArrow.style.display = 'none';
+      return;
+    }
+
+    if(t === 'rect'){
+      ghostRect.style.display = 'block';
+      ghostRect.style.left = (down.x*100)+'%';
+      ghostRect.style.top = (down.y*100)+'%';
+      ghostRect.style.width = '0%';
+      ghostRect.style.height = '0%';
+      ghostCross.style.display = 'none';
+      ghostCircle.style.display = 'none';
+      ghostArrow.style.display = 'none';
+      return;
+    }
+
+    if(t === 'circle'){
+      ghostCircle.style.display = 'block';
+      ghostCircle.style.left = (down.x*100)+'%';
+      ghostCircle.style.top = (down.y*100)+'%';
+      ghostCircle.style.width = '0%';
+      ghostCircle.style.height = '0%';
+      ghostCross.style.display = 'none';
+      ghostRect.style.display = 'none';
+      ghostArrow.style.display = 'none';
+      return;
+    }
+
+    if(t === 'arrow'){
+      ghostArrow.style.display = 'block';
+      ghostArrowLine.setAttribute('x1', down.x*100);
+      ghostArrowLine.setAttribute('y1', down.y*100);
+      ghostArrowLine.setAttribute('x2', down.x*100);
+      ghostArrowLine.setAttribute('y2', down.y*100);
+      ghostCross.style.display = 'none';
+      ghostRect.style.display = 'none';
+      ghostCircle.style.display = 'none';
+      return;
+    }
+  });
+
+  stage.addEventListener('pointermove', (ev) => {
+    if(!down) return;
+    const cur = relPos(ev);
+    const t = mt.value;
+
+    if(t === 'rect'){
+      const x = Math.min(down.x, cur.x);
+      const y = Math.min(down.y, cur.y);
+      const w = Math.abs(cur.x - down.x);
+      const h = Math.abs(cur.y - down.y);
+
+      xEl.value = x.toFixed(6);
+      yEl.value = y.toFixed(6);
+      wEl.value = w.toFixed(6);
+      hEl.value = h.toFixed(6);
+
+      ghostRect.style.left = (x*100)+'%';
+      ghostRect.style.top = (y*100)+'%';
+      ghostRect.style.width = (w*100)+'%';
+      ghostRect.style.height = (h*100)+'%';
+    }
+
+    if(t === 'circle'){
+      const dx = cur.x - down.x;
+      const dy = cur.y - down.y;
+      const r = Math.sqrt(dx*dx + dy*dy);
+
+      xEl.value = down.x.toFixed(6);
+      yEl.value = down.y.toFixed(6);
+      rEl.value = r.toFixed(6);
+
+      ghostCircle.style.width = (r*200)+'%';
+      ghostCircle.style.height = (r*200)+'%';
+    }
+
+    if(t === 'arrow'){
+      xEl.value = down.x.toFixed(6);
+      yEl.value = down.y.toFixed(6);
+      x2El.value = cur.x.toFixed(6);
+      y2El.value = cur.y.toFixed(6);
+
+      ghostArrowLine.setAttribute('x2', cur.x*100);
+      ghostArrowLine.setAttribute('y2', cur.y*100);
+    }
+  });
+
+  stage.addEventListener('pointerup', () => { down = null; });
+})();
+</script>
+{% endblock %}

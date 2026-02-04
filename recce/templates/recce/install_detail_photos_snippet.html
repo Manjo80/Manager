@@ -1,0 +1,72 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'recce/marker_overlay.css' %}">
+
+<div class="row g-3">
+
+  <div class="col-lg-8">
+    <h2 class="h6 mb-2">Fotos</h2>
+
+    {% if photos %}
+      <div class="row g-2">
+        {% for p in photos %}
+          <div class="col-6 col-md-4">
+            <div class="position-relative">
+              <span class="badge bg-dark position-absolute top-0 start-0 m-1">#{{ forloop.counter }}</span>
+
+              <img
+                src="{{ p.image.url }}"
+                class="img-fluid rounded border shadow-sm"
+                alt="{{ p.caption|default:'Foto' }}"
+                data-marker-overlay="1"
+                data-markers='{{ p.markers_json|default:"[]"|safe }}'
+                data-enlarge="1"
+                style="cursor: zoom-in;"
+              >
+            </div>
+
+            {% if p.caption %}
+              <div class="small text-muted mt-1">#{{ forloop.counter }} – {{ p.caption }}</div>
+            {% else %}
+              <div class="small text-muted mt-1">#{{ forloop.counter }}</div>
+            {% endif %}
+
+            {% if p.markers %}
+              <div class="mt-1">
+                <div class="small fw-semibold">Marker</div>
+                <ul class="small mb-0 ps-3">
+                  {% for m in p.markers %}
+                    <li>
+                      <strong>#{{ forloop.counter }}</strong>
+                      {% if m.note %} – {{ m.note }}{% endif %}
+                      <span class="text-muted">({{ m.x|floatformat:3 }}, {{ m.y|floatformat:3 }})</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted">Keine Fotos.</div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <h2 class="h6 mb-2">Standardansichten</h2>
+
+    {% if fixed_views %}
+      <div class="d-grid gap-2">
+        {% for fv in fixed_views %}
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'recce:fixed_markers' fv.pk %}">
+            {{ fv.get_view_type_display }}
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted">Keine Standardansichten.</div>
+    {% endif %}
+  </div>
+
+</div>
