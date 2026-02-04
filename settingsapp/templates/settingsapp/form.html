@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ title|default:"Bearbeiten" }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">{{ title|default:"Formular" }}</h1>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Speichern</button>
+        <a class="btn btn-outline-secondary" href="../">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

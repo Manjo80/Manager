@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Einstellungen{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">Einstellungen</h1>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="list-group shadow-sm">
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:person_list' %}">Personen</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:tool_list' %}">Werkzeuge</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:batterytype_list' %}">Akkus</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:profile_list' %}">Profile</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:sendermodel_list' %}">Sender-Modelle</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:group_list' %}">Gruppen</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:recceperspective_list' %}">Recce Perspektiven</a>
+      <a class="list-group-item list-group-item-action" href="{% url 'settingsapp:risklevel_list' %}">Risk-Level</a>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="mb-2"><strong>Zugriff:</strong> Nur Gruppe <code>settings_admin</code> oder Superuser.</p>
+        <p class="mb-0 text-muted small">LDAP später: Gruppen kommen idealerweise aus LDAP-Gruppen-Mapping. Die App prüft nur Django-Gruppen.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
